@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Bind-mounted volumes reflect the host's actual ownership, not whatever was
+# baked into the image - a freshly created ./dst_data is root-owned, which the
+# dst user below can't write to. Fix it here while we're still root, then drop
+# to the dst user for everything else.
+if [ "$(id -u)" = "0" ]; then
+    chown -R dst:dst /data /home/dst/dst_server
+    exec gosu dst "$0" "$@"
+fi
+
 # Check volume permissions
 if [ ! -w "/data/" ]; then
     echo "Insufficient permissions to create files in /data. Check data volume permissions."

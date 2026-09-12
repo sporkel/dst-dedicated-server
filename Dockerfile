@@ -16,7 +16,7 @@ COPY --from=builder /usr/local/cargo/bin/dst-ping /usr/local/bin/
 RUN set -x && \
     dpkg --add-architecture i386 && \
     apt-get update && apt-get upgrade -y && \
-    DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y wget ca-certificates lib32gcc-s1 lib32stdc++6 libcurl4-gnutls-dev:i386 && \
+    DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y wget ca-certificates gosu lib32gcc-s1 lib32stdc++6 libcurl4-gnutls-dev:i386 && \
     # Download Steam CMD (https://developer.valvesoftware.com/wiki/SteamCMD#Downloading_SteamCMD)
     wget -q -O - "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf - && \
     chown -R dst:dst ./ && \
@@ -29,6 +29,11 @@ RUN mkdir /data && \
     chown dst:dst /data
 USER dst
 RUN mkdir -p .klei/DoNotStarveTogether dst_server
+
+# Container starts as root so the entrypoint can fix ownership of bind-mounted
+# volumes (which always reflect the host's actual permissions, regardless of
+# what's baked into the image) before dropping to the dst user itself.
+USER root
 
 # volume for DST server binary
 VOLUME ["/home/dst/dst_server"]
