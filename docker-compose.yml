@@ -1,0 +1,55 @@
+services:
+  dst_master:
+    container_name: phc_dst_master
+    build: .
+    image: phc-dst-dedicated-server:latest
+    stdin_open: true
+    tty: true
+    hostname: dst_master
+
+    networks:
+      - dst_cluster
+
+    ports:
+      - "11000:11000/udp"
+
+    volumes:
+      - dst_server:/home/dst/dst_server
+      - ./dst_data:/data
+
+    environment:
+      - CLUSTER_NAME=PHC DST Server
+      - CLUSTER_TOKEN=${CLUSTER_TOKEN}
+      - SHARD_NAME=Master
+
+  dst_caves:
+    container_name: phc_dst_caves
+    build: .
+    image: phc-dst-dedicated-server:latest
+    stdin_open: true
+    tty: true
+    hostname: dst_caves
+
+    depends_on:
+      dst_master:
+        condition: service_healthy
+
+    ports:
+      - "10999:10999/udp"
+
+    networks:
+      - dst_cluster
+
+    volumes:
+      - dst_server:/home/dst/dst_server
+      - ./dst_data:/data
+
+    environment:
+      - CLUSTER_NAME=PHC DST Server
+      - SHARD_NAME=Caves
+
+networks:
+  dst_cluster:
+
+volumes:
+  dst_server:

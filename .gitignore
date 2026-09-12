@@ -1,0 +1,3 @@
+dst_data/
+dst_data_backup_*/
+.env
